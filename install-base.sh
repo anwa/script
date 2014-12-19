@@ -61,11 +61,11 @@ sel_git(){
     GITVER="${input:-$GITLATE}"
 
     if [[ ${GITALL[@]} =~ $GITVER ]]; then 
-	  echo "Ok! Installing git version $GITVER"
-	  inst_git $GITVER
+      echo "Ok! Installing git version $GITVER"
+      inst_git $GITVER
       break
     else
-	  echo "Git version $GITVER is not available!"
+      echo "Git version $GITVER is not available!"
     fi
   done
 }
@@ -168,59 +168,52 @@ apt-get -y autoremove
 clear
 echo "Install Git"
 echo "-----------------------------------------"
+GITVER1=$(LC_MESSAGES=C apt-cache policy git | grep -Po 'Installed: \K.*')
+GITVER2=$(LC_MESSAGES=C apt-cache policy git | grep -Po 'Candidate: \K.*')
+GITVER3=$(git ls-remote --tags https://github.com/git/git.git | grep -v - | grep -v { | sort -t '/' -k 3 -V | grep -Po 'refs/tags/\K.*' | tr " " "\n" | sed -n '$p')
+
 if git --version &>/dev/null; then
   # Git is installed
-  GITVER1=$(LC_MESSAGES=C apt-cache policy git | grep -Po 'Installed: \K.*')
-  GITSRC=" apt"
+  GITVER4=$(git --version | grep -Po 'version \K.*')
+  GITVER4=$(echo v$GITVER1)
+
   if [[ $GITVER1 == "(none)" ]] ; then
-     GITVER1=$(git --version | grep -Po 'version \K.*')
-     GITVER1=$(echo v$GITVER1)
-     GITSRC=" source"
-  fi
-  GITVER2=$(git ls-remote --tags https://github.com/git/git.git | grep v2. | grep -v - | grep -v { | sort -t '/' -k 3 -V | grep -Po 'refs/tags/\K.*' | tr " " "\n" | sed -n '$p')
-  if [[ "$GITVER1" == "$GITVER2" ]] ; then
+    options=("Install git from apt [$GITVER2]")
+    options+=("Update git from source [$GITVER4 -> $GITVER3]")
+  elif [[ $GITVER1 == $GITVER2 ]] ; then
     echo "Already the actual git version [$GITVER1] installed!"
-  else
-    options=("Keep git from$GITSRC [$GITVER1]" "Install from source [$GITVER2]")
-    select opt in "${options[@]}"; do
-      case "$REPLY" in
-        1) echo "Keep git from$GITSRC"
-          break;;
-        2) echo "Install from source"
-          #dpkg --purge --ignore-depends=etckeeper git git-man git-core
-          inst_git $GITVER2
-          break;;
-        *) echo "Invalid option. Try another one."
-          continue;;
-      esac
-      echo "In select!"
-    done
+    options=("Keep installed git from apt [$GITVER1]")
+    options+=("Install git from source [$GITVER3]")
   fi
 else
-  # Git is NOT installed
-  GITVER1=$(LC_MESSAGES=C apt-cache policy git | grep -Po 'Candidate: \K.*')
-  options=("Install git from apt [$GITVER1]" "Install from source [$GITVER]")
-  select opt in "${options[@]}"; do
-    case "$REPLY" in
-      1) echo "Install git from apt"
-        apt-get -y install git
-        break;;
-      2) echo "Install from source"
-        inst_git $GITVER2
-        break;;
-      *) echo "Invalid option. Try another one."
-        continue;;
-    esac
-    echo "In select!"
-  done
+  options=("Install git from apt [$GITVER2]")
+  options+=("Install git from source [$GITVER3]")
 fi
+options+=("Manual select git version from source")
 
+# Git is NOT installed
+select opt in "${options[@]}"; do
+  case "$REPLY" in
+    1) echo "Install git from apt"
+      apt-get -y install git
+      ;;
+    2) echo "Install from source"
+      inst_git $GITVER2
+      ;;
+    3) echo "Install from source"
+      sel_git
+      ;;
+    *) echo "Invalid option. Try another one."
+      continue;;
+  esac
+  echo "In select!"
 # Installing from Paketmanager
 
-git config --global user.email "$SUSER@$FQN"
-git config --global user.name "$SUSER"
-git config --global push.default simple
-
+  git config --global user.email "$SUSER@$FQN"
+  git config --global user.name "$SUSER"
+  git config --global push.default simple
+  break
+done
 # Create 
 # sudo -s
 ssh-keygen
