@@ -345,18 +345,21 @@ sed -i "/server 1./d" /etc/ntp.conf
 sed -i "/server 2./d" /etc/ntp.conf
 sed -i "/server 3./d" /etc/ntp.conf
 # Siemens
-sed -i "s/Ubuntu"\'"s/Siemens/" /etc/ntp.conf
-sed -i "0,/server 0.*/s/server 0.*/server 10.50.0.1/" /etc/ntp.conf
-sed -i "0,/server ntp.*/s/server ntp.*/server 155.45.163.127/" /etc/ntp.conf
+if [ ! -z "$siemens" ] ; then
+  sed -i "s/Ubuntu"\'"s/Siemens/" /etc/ntp.conf
+  sed -i "0,/server 0.*/s/server 0.*/server 10.50.0.1/" /etc/ntp.conf
+  sed -i "0,/server ntp.*/s/server ntp.*/server 155.45.163.127/" /etc/ntp.conf
 # Privat
-sed -i "0,/server 0.*/s/server 0.*/server 192.168.2.1/" /etc/ntp.conf
-sed -i "s/Ubuntu"\'"s/ntp.pool/" /etc/ntp.conf
-sed -i "0,/server ntp.*/s/server ntp.*/server 0.de.pool.ntp.org/" /etc/ntp.conf
-#
+else
+  sed -i "0,/server 0.*/s/server 0.*/server 192.168.2.1/" /etc/ntp.conf
+  sed -i "s/Ubuntu"\'"s/ntp.pool/" /etc/ntp.conf
+  sed -i "0,/server ntp.*/s/server ntp.*/server 0.de.pool.ntp.org/" /etc/ntp.conf
+fi
 ntpd -qg
 service ntp start
 cd /etc
 git commit -a -m "Setup ntp Server"
+
 
 # Install some tools
 apt-get -y install mc
