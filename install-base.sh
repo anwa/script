@@ -32,9 +32,9 @@ inst_git(){
   # Install dependencies
   apt-get -y install --no-install-recommends libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev make autoconf build-essential asciidoc xmlto
   cd $SRC
-  GITVER=$(git ls-remote --tags https://github.com/git/git.git | grep v2. | grep -v - | grep -v { | sort -t '/' -k 3 -V | grep -Po 'refs/tags/\K.*' | tr " " "\n" | sed -n '$p')
+  GITVER=$(git ls-remote --tags https://github.com/git/git.git | grep v2. | grep -v - | grep -v \{ | sort -t '/' -k 3 -V | grep -Po 'refs/tags/\K.*' | tr " " "\n" | sed -n '$p')
   GITVER=${1:-$GITVER}
-  curl -L --progress https://github.com/git/git/archive/GITVER.tar.gz | tar xz
+  curl -L --progress https://github.com/git/git/archive/$GITVER.tar.gz | tar xz
   cd git*
   make configure
   ./configure --prefix=/usr
@@ -60,7 +60,7 @@ sel_git(){
     read -e -i "$GITLATE" -p "Enter Git version to install: " input
     GITVER="${input:-$GITLATE}"
 
-    if [[ ${GITALL[@]} =~ $GITVER ]]; then 
+    if [[ ${GITALL[@]} =~ $GITVER ]]; then
       echo "Ok! Installing git version $GITVER"
       inst_git $GITVER
       break
@@ -160,7 +160,7 @@ GITVER="v2.2.0"
 #echo $SUSER
 
 # Update the System
-apt-get -y update 
+apt-get -y update
 apt-get -y dist-upgrade
 apt-get -y autoremove
 
@@ -214,7 +214,7 @@ select opt in "${options[@]}"; do
   git config --global push.default simple
   break
 done
-# Create 
+# Create
 # sudo -s
 ssh-keygen
 # cat /root/.ssh/id_rsa.pub
@@ -412,7 +412,7 @@ done
 # Use Install VMWare Tools option in VMWare Client to attach media
 ###################################################
 # Open VM Tools
-if [[ $(dmesg | grep "VMware Virtual") ]]; then 
+if [[ $(dmesg | grep "VMware Virtual") ]]; then
   clear
   echo "System is running under VMware!"
   echo "Install VMWare Tools"
